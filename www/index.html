@@ -1,4 +1,4 @@
-<!doctype html><html lang="es"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>ROAN · Libreta de socios</title><meta name="theme-color" content="#5444E8"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"></head><body>
+<!doctype html><html lang="es"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>.vtf .fld{margin-top:12px}.vtf input,.vtf select,.vtf textarea{width:100%}</style><title>ROAN · Libreta de socios</title><meta name="theme-color" content="#5444E8"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"></head><body>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -280,7 +280,7 @@ function plazo(iso){
 var LS={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}}};
 
 /* ---------- estado ---------- */
-var COLS=['emprendimientos','gastos','cobros','clientes','tareas','bitacora','ideas','hitos','metricas','obligaciones','documentos','proveedores','aportes','notasvoz'];
+var COLS=['boveda','emprendimientos','gastos','cobros','clientes','tareas','bitacora','ideas','hitos','metricas','obligaciones','documentos','proveedores','aportes','notasvoz'];
 var S={};COLS.forEach(function(c){S[c]=[]});
 var CFG={empresa:'ROAN',a:'Angel',b:'Rodrigo',pctA:50,tc:0};
 var FICHA_DEF={razon:'',tipo:'Sin definir',cuit:'',regimen:'Sin definir',constitucion:'',actividad:'',domicilio:'',iibb:'',contador:'',banco:'',saldo:0};
@@ -1233,18 +1233,18 @@ function appCard(){
   return '<div class="card"><h3>Instalar la app</h3><p class="sub">Esta misma libreta se puede instalar en el celular, con los mismos datos y el mismo mail.</p><ol class="steps"><li><strong>Android (APK):</strong> descargá el archivo, abrilo y aceptá instalar desde esta fuente cuando el teléfono te lo pida.</li><li><strong>Cualquier celular (iPhone incluido):</strong> abrí esta página en el navegador y elegí "Agregar a pantalla de inicio" o "Instalar app".</li></ol>'+(u?'<div class="frow"><a class="btn" href="'+esc(u)+'">Descargar APK para Android</a></div>':'')+'</div>';
 }
 function vAjustes(){
-  var dl=downloads?'<div class="frow">'+COLS.map(function(c){return '<button class="btn ghost" data-act="csv" data-col="'+c+'">'+CSVL[c]+'</button>'}).join('')+'</div>':'<p class="sub">La descarga de copias no está disponible en esta vista.</p>';
+  var dl=downloads?'<div class="frow">'+COLS.filter(function(c){return c!=='boveda'}).map(function(c){return '<button class="btn ghost" data-act="csv" data-col="'+c+'">'+CSVL[c]+'</button>'}).join('')+'</div>':'<p class="sub">La descarga de copias no está disponible en esta vista.</p>';
   var nDocs=COLS.reduce(function(n,c){return n+S[c].length},0)+(loaded.cfg?1:0)+(loaded.ficha?1:0);
   var dg='<div class="card"><h3>Estado de la nube</h3><p class="sub">Los datos se guardan en Supabase y se sincronizan al instante entre los dos socios. El plan gratuito da 500 MB: con texto y números alcanza para años. Hoy tienen cargados '+nf.format(nDocs)+' registros.</p><p class="sub" style="margin-top:6px">Si arriba dice "sin respuesta", tocá el botón. Lee cada lista directo de la nube, trae lo que falta y te dice cuál no contesta.</p><div class="frow"><button class="btn" data-act="diag"'+(diag.busy?' disabled':'')+'>'+(diag.busy?'Revisando…':'Revisar conexión con la nube')+'</button></div>'+
     (diag.res?'<div class="tscroll" style="margin-top:12px"><table class="tbl" style="min-width:440px"><thead><tr><th>Lista</th><th class="num">Registros</th><th class="num">Tiempo</th><th>Respuesta</th></tr></thead><tbody>'+diag.res.slice().sort(function(a,b){return String(a[0]).localeCompare(String(b[0]))}).map(function(r){return '<tr><td>'+esc(r[0])+'</td><td class="num">'+(r[1]==null?'—':r[1])+'</td><td class="num">'+r[2]+' ms</td><td><span class="chip '+(r[3]==='ok'?'ok':'bad')+'">'+esc(r[3])+'</span></td></tr>'}).join('')+'</tbody></table></div><p style="margin-top:10px"><strong>'+esc(diag.probe)+'</strong></p>':'')+'</div>';
   return dg+accountCard()+appCard()+
     '<div class="card"><h3>Copias de seguridad</h3><p class="sub">Con la copia completa bajás todo en un solo archivo. También podés bajar cada sección en CSV para abrirla en Excel o Google Sheets. Conviene hacerlo una vez por mes: el plan gratuito de la nube no hace copias automáticas.</p>'+(downloads?'<div class="frow"><button class="btn" data-act="backup">Copia completa (un solo archivo)</button></div>':'')+dl+'</div>';
 }
-var CSVL={emprendimientos:'Emprendimientos',gastos:'Gastos',cobros:'Cobros',clientes:'Clientes',tareas:'Tareas',bitacora:'Bitácora',ideas:'Ideas',hitos:'Hitos y metas',metricas:'Métricas',obligaciones:'Vencimientos',documentos:'Documentos',proveedores:'Proveedores',aportes:'Aportes y retiros',notasvoz:'Notas de voz'};
+var CSVL={emprendimientos:'Emprendimientos',gastos:'Gastos',cobros:'Cobros',clientes:'Clientes',tareas:'Tareas',bitacora:'Bitácora',ideas:'Ideas',hitos:'Hitos y metas',metricas:'Métricas',obligaciones:'Vencimientos',documentos:'Documentos',proveedores:'Proveedores',aportes:'Aportes y retiros',notasvoz:'Notas de voz',boveda:'Contraseñas (cifradas)'};
 function csvCell(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'}
 
 /* ---------- navegación ---------- */
-var TOPS=[['resumen','Resumen'],['empresa','Empresa'],['emprendimientos','Emprendimientos'],['ideas','Ideas'],['voz','Voz'],['ajustes','Ajustes']];
+var TOPS=[['resumen','Resumen'],['empresa','Empresa'],['emprendimientos','Emprendimientos'],['ideas','Ideas'],['voz','Voz'],['boveda','Contraseñas'],['ajustes','Ajustes']];
 var SUBS={
   panorama:{t:'Panorama',view:function(){return inEmpCtx()?vEmpPanorama():vEmpresaPanorama()}},
   ficha:{t:'Ficha',col:'ficha',view:vFicha},
@@ -1271,6 +1271,7 @@ function current(){
   if(tab==='emprendimientos')return inEmpCtx()?SUBS[sub]:{view:vEmprendimientos,col:'emprendimientos'};
   if(tab==='ideas')return {view:vIdeas,col:'ideas'};
   if(tab==='voz')return {view:vVoz};
+  if(tab==='boveda')return {view:vBoveda};
   return {view:vAjustes,col:'cfg'};
 }
 function saveCur(){LS.set('roan.emp',curEmp)}
@@ -1279,7 +1280,7 @@ function renderNav(){
   var subs=subsList();
   $('#subnav').innerHTML=subs.map(function(s){return '<a href="#'+tab+'-'+s+'"'+(s===sub?' aria-current="page"':'')+'>'+esc(SUBS[s].t)+'</a>'}).join('');
   $('#subwrap').hidden=!subs.length;
-  var fb=$('#fab');if(fb)fb.hidden=(tab==='voz');
+  var fb=$('#fab');if(fb)fb.hidden=(tab==='voz'||tab==='boveda');
   var e=inEmpCtx()?empById(curEmp):null;
   $('#ctxhead').innerHTML=e?'<button class="lnk" data-act="backemps">← Emprendimientos</button><h2>'+esc(e.nombre)+'</h2><span class="chip '+(ESTCLS[e.estado]||'')+'">'+esc(e.estado)+'</span>':'';
 }
@@ -1516,6 +1517,189 @@ ACT.videa=async function(b,d){
   await db.collection('ideas').doc().set({emp:voz.emp||'',titulo:t.slice(0,140),detalle:'Viene de una nota de voz',potencial:'Medio',esfuerzo:'Medio',estado:'Nueva',by:myId||null,ts:Date.now()});
   voz.doneI[i]=true;renderVozRes();toast('Idea guardada');
 };
+/* ---------- contraseñas de máxima seguridad (cifrado en el dispositivo) ---------- */
+var VT={cfg:undefined,cfgBusy:false,key:null,plain:{},dec:{},q:'',shown:{},armed:null,last:0,busy:false,modal:null};
+var VT_ITER=310000;
+var b64=function(u8){var s='';for(var i=0;i<u8.length;i++)s+=String.fromCharCode(u8[i]);return btoa(s)};
+var unb64=function(s){var r=atob(s),u=new Uint8Array(r.length);for(var i=0;i<r.length;i++)u[i]=r.charCodeAt(i);return u};
+var vtOK=function(){return !!(window.crypto&&crypto.subtle&&crypto.getRandomValues)};
+async function vtDerive(pass,salt,iter){
+  var base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt:salt,iterations:iter,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function vtEnc(key,obj){
+  var iv=crypto.getRandomValues(new Uint8Array(12));
+  var ct=await crypto.subtle.encrypt({name:'AES-GCM',iv:iv},key,new TextEncoder().encode(JSON.stringify(obj)));
+  return {iv:b64(iv),ct:b64(new Uint8Array(ct))};
+}
+async function vtDec(key,p){
+  var pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(p.iv)},key,unb64(p.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+function vtLock(msg){VT.key=null;VT.plain={};VT.dec={};VT.shown={};VT.q='';VT.armed=null;vtCloseModal();if(msg)toast(msg);if(tab==='boveda')paint()}
+function vtTouch(){VT.last=Date.now()}
+setInterval(function(){if(VT.key&&Date.now()-VT.last>5*60*1000)vtLock('Contraseñas bloqueadas por inactividad')},15000);
+document.addEventListener('visibilitychange',function(){if(document.hidden&&VT.key){VT.hiddenAt=Date.now()}else if(VT.key&&VT.hiddenAt&&Date.now()-VT.hiddenAt>60*1000){VT.hiddenAt=0;vtLock('Contraseñas bloqueadas')}});
+['click','keydown','touchstart'].forEach(function(ev){document.addEventListener(ev,function(){if(VT.key)vtTouch()},true)});
+
+async function vtLoadCfg(){
+  if(VT.cfg!==undefined||VT.cfgBusy||!db)return;
+  VT.cfgBusy=true;
+  try{var sn=await db.doc('config/boveda').get();VT.cfg=sn.exists?sn.data():null}
+  catch(e){VT.cfg=undefined;toast('No se pudo leer la configuración de contraseñas')}
+  VT.cfgBusy=false;if(tab==='boveda')paint();
+}
+async function vtDecryptAll(){
+  if(!VT.key)return;var changed=false;
+  for(var i=0;i<S.boveda.length;i++){
+    var r=S.boveda[i],sig=r.data&&r.data.ct;
+    if(!sig||VT.dec[r.id]===sig)continue;
+    try{VT.plain[r.id]=await vtDec(VT.key,r.data)}catch(e){VT.plain[r.id]={_err:true}}
+    VT.dec[r.id]=sig;changed=true;
+  }
+  if(changed&&tab==='boveda'&&!VT.modal)paint();
+}
+var vtGroups=function(){
+  var q=norm(VT.q||''),g={};
+  S.boveda.forEach(function(r){
+    var p=VT.plain[r.id]||{};
+    var hay=norm([r.servicio,empName(r.emp||''),p.url,p.usuario,p.notas].join(' '));
+    if(q&&hay.indexOf(q)<0)return;
+    var k=r.emp||'';(g[k]=g[k]||[]).push(r);
+  });
+  return g;
+};
+function vtCard(r){
+  var p=VT.plain[r.id];if(!p)return '<article class="card"><h3>'+esc(r.servicio)+'</h3><p class="sub">Descifrando…</p></article>';
+  if(p._err)return '<article class="card"><h3>'+esc(r.servicio)+'</h3><p class="note warn">No se pudo descifrar este registro con la clave maestra actual.</p><div class="acts"><button class="lnk bad" data-act="vtdel" data-id="'+esc(r.id)+'">'+(VT.armed===r.id?'¿Seguro?':'Borrar')+'</button></div></article>';
+  var sh=!!VT.shown[r.id];
+  var url=p.url?(/^https?:\/\//i.test(p.url)?'<a href="'+esc(p.url)+'" target="_blank" rel="noopener noreferrer">'+esc(p.url.replace(/^https?:\/\//i,''))+'</a>':esc(p.url)):'';
+  return '<article class="card"><h3 style="margin-bottom:4px">'+esc(r.servicio)+'</h3>'+
+    (url?'<p class="sub" style="margin:0 0 8px;word-break:break-all">'+url+'</p>':'')+
+    '<p style="margin:4px 0"><span class="chip">Usuario</span> <span style="word-break:break-all">'+esc(p.usuario||'—')+'</span> '+(p.usuario?'<button class="lnk" data-act="vtcopy" data-id="'+esc(r.id)+'" data-f="usuario">Copiar</button>':'')+'</p>'+
+    '<p style="margin:4px 0"><span class="chip">Clave</span> <span style="font-family:var(--mono);word-break:break-all">'+(sh?esc(p.clave||''):'••••••••••••')+'</span> <button class="lnk" data-act="vtshow" data-id="'+esc(r.id)+'">'+(sh?'Ocultar':'Mostrar')+'</button><button class="lnk" data-act="vtcopy" data-id="'+esc(r.id)+'" data-f="clave">Copiar</button></p>'+
+    (p.notas?'<p class="sub" style="white-space:pre-wrap;margin-top:8px">'+esc(p.notas)+'</p>':'')+
+    '<p class="sub" style="margin-top:8px">'+esc([r.by?'cargó '+byName(r.by):'',r.ts?new Date(r.ts).toLocaleDateString('es-AR'):''].filter(Boolean).join(' · '))+'</p>'+
+    '<div class="acts"><button class="lnk" data-act="vtedit" data-id="'+esc(r.id)+'">Editar</button><button class="lnk bad" data-act="vtdel" data-id="'+esc(r.id)+'">'+(VT.armed===r.id?'¿Seguro?':'Borrar')+'</button></div></article>';
+}
+function vtListHTML(){
+  var g=vtGroups(),keys=Object.keys(g);
+  if(!S.boveda.length)return empty('Todavía no hay contraseñas guardadas','Cargá la primera con el botón de arriba: el usuario, la clave y la página de cada servicio que usen en sus aplicaciones (hosting, base de datos, stores, redes, dominios).');
+  if(!keys.length)return empty('Sin resultados','Probá con otra búsqueda.');
+  keys.sort(function(a,b){return norm(empName(a)).localeCompare(norm(empName(b)))});
+  return keys.map(function(k){return '<h3 style="font-size:17px;margin:18px 0 8px">'+esc(k?empName(k):'General de '+(CFG.empresa||'la empresa'))+'</h3><div class="grid">'+g[k].sort(function(a,b){return norm(a.servicio).localeCompare(norm(b.servicio))}).map(vtCard).join('')+'</div>'}).join('');
+}
+function vBoveda(){
+  var head='<div class="card"><h3>Contraseñas de máxima seguridad</h3><p class="sub">Acá guardan las claves y las páginas de todos los servicios de sus aplicaciones. Usuario, clave, página y notas se <strong>cifran en este dispositivo</strong> con una clave maestra que solo conocen ustedes dos: Supabase guarda únicamente texto ilegible y nadie más puede leerlas, ni siquiera quien administre la nube.</p>';
+  if(!vtOK())return head+'<p class="note warn">Este navegador no permite el cifrado seguro. Abrí la libreta desde Chrome, Safari o la app instalada.</p></div>';
+  if(!db)return head+'</div>';
+  if(!COLS.every(ready))return loadingHTML();
+  if(VT.cfg===undefined){vtLoadCfg();return head+'<p class="sub">Verificando…</p></div>'}
+  if(VT.cfg===null){
+    return head+'<p class="sub">Primero elijan la <strong>clave maestra</strong>. Tiene que ser larga (una frase de varias palabras es lo mejor) y la tienen que saber los dos. <strong>Si se pierde, no hay forma de recuperar las contraseñas</strong>: ni nosotros ni Supabase podemos abrirlas. Anótenla en papel y guárdenla en un lugar seguro.</p>'+
+      '<form class="vtf" id="vt-setup" autocomplete="off"><div class="fld"><label for="vt-p1">Clave maestra (mínimo 12 caracteres)</label><input id="vt-p1" type="password" autocomplete="new-password" minlength="12" required></div><div class="fld"><label for="vt-p2">Repetirla</label><input id="vt-p2" type="password" autocomplete="new-password" minlength="12" required></div><div class="frow"><button class="btn" type="submit">Crear clave maestra</button></div></form></div>';
+  }
+  if(!VT.key){
+    return head+'<form class="vtf" id="vt-unlock" autocomplete="off"><div class="fld"><label for="vt-pw">Clave maestra</label><input id="vt-pw" type="password" autocomplete="off" required></div><div class="frow"><button class="btn" type="submit">Desbloquear</button></div></form></div>';
+  }
+  vtDecryptAll();
+  var top='<div class="frow" style="margin-top:12px">'+(readOnly?'':'<button class="btn" data-act="vtnew">+ Nueva contraseña</button>')+'<button class="btn ghost" data-act="vtlock">Bloquear ahora</button></div><div class="fld" style="margin-top:12px"><label for="vt-q">Buscar</label><input id="vt-q" type="search" placeholder="Servicio, aplicación, usuario…" value="'+esc(VT.q)+'"></div>';
+  return head+top+'</div><div id="vt-list">'+vtListHTML()+'</div>';
+}
+function vtCloseModal(){if(VT.modal){VT.modal.remove();VT.modal=null}}
+function vtGen(){
+  var A='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*-_=+',n=22,out='',u=new Uint32Array(n),lim=Math.floor(4294967296/A.length)*A.length;
+  while(out.length<n){crypto.getRandomValues(u);for(var i=0;i<n&&out.length<n;i++){if(u[i]<lim)out+=A[u[i]%A.length]}}
+  return out;
+}
+function vtOpenModal(id){
+  vtCloseModal();
+  var r=id?find('boveda',id):null,p=r?(VT.plain[id]||{}):{};
+  if(id&&(!r||p._err))return;
+  var m=document.createElement('div');
+  m.style.cssText='position:fixed;inset:0;z-index:300;background:rgba(10,10,20,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:16px';
+  var opts=EMPOPT().map(function(o){return '<option value="'+esc(o[0])+'"'+(((r&&r.emp)||'')===o[0]?' selected':'')+'>'+esc(o[0]===''?'General (todas / la empresa)':o[1])+'</option>'}).join('');
+  m.innerHTML='<form class="card vtf" style="width:min(520px,100%);margin:auto" autocomplete="off"><h3>'+(r?'Editar contraseña':'Nueva contraseña')+'</h3>'+
+    '<div class="fld"><label>Aplicación</label><select id="vm-emp">'+opts+'</select></div>'+
+    '<div class="fld"><label>Servicio o página</label><input id="vm-serv" required maxlength="80" placeholder="Ej: Supabase, GitHub, Google Play Console, dominio" value="'+esc(r?r.servicio:'')+'"></div>'+
+    '<div class="fld"><label>Dirección web (opcional)</label><input id="vm-url" type="url" inputmode="url" placeholder="https://" value="'+esc(p.url||'')+'"></div>'+
+    '<div class="fld"><label>Usuario o mail</label><input id="vm-user" autocomplete="off" autocapitalize="off" value="'+esc(p.usuario||'')+'"></div>'+
+    '<div class="fld"><label>Clave</label><input id="vm-pass" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" style="font-family:var(--mono)" value="'+esc(p.clave||'')+'"></div>'+
+    '<div class="frow" style="margin-top:6px"><button type="button" class="btn ghost" id="vm-gen">Generar clave segura</button></div>'+
+    '<div class="fld"><label>Notas (opcional): preguntas de seguridad, códigos de respaldo, 2FA…</label><textarea id="vm-notas" rows="3" maxlength="2000">'+esc(p.notas||'')+'</textarea></div>'+
+    '<div class="frow"><button class="btn" type="submit">Guardar cifrado</button><button class="btn ghost" type="button" id="vm-cancel">Cancelar</button></div></form>';
+  document.body.appendChild(m);VT.modal=m;
+  m.querySelector('#vm-gen').onclick=function(){m.querySelector('#vm-pass').value=vtGen()};
+  m.querySelector('#vm-cancel').onclick=function(){vtCloseModal();paint()};
+  m.querySelector('form').onsubmit=async function(ev){
+    ev.preventDefault();if(VT.busy||!VT.key)return;VT.busy=true;
+    var btn=m.querySelector('button[type=submit]');btn.disabled=true;
+    try{
+      var emp=m.querySelector('#vm-emp').value,serv=m.querySelector('#vm-serv').value.trim();
+      if(!serv){toast('Poné el nombre del servicio');return}
+      var payload={url:m.querySelector('#vm-url').value.trim(),usuario:m.querySelector('#vm-user').value.trim(),clave:m.querySelector('#vm-pass').value,notas:m.querySelector('#vm-notas').value.trim()};
+      var enc=await vtEnc(VT.key,payload);
+      if(r){await db.collection('boveda').doc(r.id).update({emp:emp,servicio:serv,data:enc,ts:Date.now()});delete VT.dec[r.id]}
+      else await db.collection('boveda').doc().set({emp:emp,servicio:serv,data:enc,by:myId||null,ts:Date.now()});
+      vtCloseModal();toast('Guardada y cifrada');paint();
+    }catch(e){toast(saveMsg(e))}
+    finally{VT.busy=false;btn.disabled=false}
+  };
+  setTimeout(function(){var f=m.querySelector('#vm-serv');if(f&&!r)f.focus()},50);
+}
+document.addEventListener('submit',async function(ev){
+  var f=ev.target;
+  if(f.id==='vt-setup'){
+    ev.preventDefault();if(VT.busy)return;
+    var a=$('#vt-p1').value,c=$('#vt-p2').value;
+    if(a.length<12){toast('La clave maestra necesita al menos 12 caracteres');return}
+    if(a!==c){toast('Las dos claves no coinciden');return}
+    VT.busy=true;
+    try{
+      var cur=await db.doc('config/boveda').get();
+      if(cur.exists){VT.cfg=cur.data();toast('Ya existe una clave maestra: ingresala para desbloquear');return}
+      var salt=crypto.getRandomValues(new Uint8Array(16)),key=await vtDerive(a,salt,VT_ITER);
+      var chk=await vtEnc(key,{ok:'ROAN'});
+      var cfg={salt:b64(salt),iter:VT_ITER,check:chk,ts:Date.now()};
+      await db.doc('config/boveda').set(cfg);
+      VT.cfg=cfg;VT.key=key;vtTouch();toast('Clave maestra creada. Compartísela a tu socio por un medio seguro.');
+    }catch(e){toast(saveMsg(e))}
+    finally{VT.busy=false;paint()}
+  }else if(f.id==='vt-unlock'){
+    ev.preventDefault();if(VT.busy)return;
+    var pw=$('#vt-pw').value;VT.busy=true;
+    try{
+      var k=await vtDerive(pw,unb64(VT.cfg.salt),VT.cfg.iter||VT_ITER);
+      var o=await vtDec(k,VT.cfg.check);
+      if(!o||o.ok!=='ROAN')throw new Error('x');
+      VT.key=k;vtTouch();
+    }catch(e){toast('Clave maestra incorrecta')}
+    finally{VT.busy=false;paint()}
+  }
+});
+document.addEventListener('input',function(ev){
+  if(ev.target.id==='vt-q'){
+    VT.q=ev.target.value;var l=$('#vt-list');if(l)l.innerHTML=vtListHTML();
+  }
+});
+var vtClipT;
+async function vtCopyText(txt,label){
+  try{await navigator.clipboard.writeText(txt)}catch(e){toast('No se pudo copiar');return}
+  toast(label+' copiado. Se borra del portapapeles en 30 segundos.');
+  clearTimeout(vtClipT);vtClipT=setTimeout(function(){try{navigator.clipboard.writeText(' ')}catch(e){}},30000);
+}
+ACT.vtnew=function(){if(VT.key)vtOpenModal()};
+ACT.vtedit=function(b,d){if(VT.key)vtOpenModal(d.id)};
+ACT.vtlock=function(){vtLock('Contraseñas bloqueadas')};
+ACT.vtshow=function(b,d){VT.shown[d.id]=!VT.shown[d.id];var l=$('#vt-list');if(l)l.innerHTML=vtListHTML();
+  if(VT.shown[d.id])setTimeout(function(){if(VT.shown[d.id]){VT.shown[d.id]=false;var l2=$('#vt-list');if(l2&&tab==='boveda')l2.innerHTML=vtListHTML()}},20000)};
+ACT.vtcopy=function(b,d){var p=VT.plain[d.id];if(p&&p[d.f])return vtCopyText(p[d.f],d.f==='clave'?'Clave':'Usuario')};
+ACT.vtdel=async function(b,d){
+  if(!VT.key||readOnly)return;
+  if(VT.armed!==d.id){VT.armed=d.id;var l=$('#vt-list');if(l)l.innerHTML=vtListHTML();setTimeout(function(){if(VT.armed===d.id){VT.armed=null;var l3=$('#vt-list');if(l3&&tab==='boveda')l3.innerHTML=vtListHTML()}},3000);return}
+  VT.armed=null;await db.collection('boveda').doc(d.id).delete();delete VT.plain[d.id];delete VT.dec[d.id];toast('Contraseña borrada');
+};
+
 ACT.logout=function(){return window.roanLogout()};
 ACT.backup=async function(){
   if(!downloads)return;
