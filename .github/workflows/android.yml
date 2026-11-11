@@ -32,12 +32,14 @@ jobs:
           rsvg-convert -w 512 -h 512 www/icons/icon.svg -o www/icons/icon-maskable-512.png
           rsvg-convert -w 1024 -h 1024 www/icons/icon.svg -o assets/icon-only.png
           rsvg-convert -w 1024 -h 1024 assets/icon-fg.svg -o assets/icon-foreground.png
+          echo '<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024"><rect width="1024" height="1024" fill="#5444E8"/></svg>' > /tmp/bg.svg
+          rsvg-convert -w 1024 -h 1024 /tmp/bg.svg -o assets/icon-background.png
 
       - name: Instalar dependencias y crear el proyecto Android
         run: |
           npm install
           npx cap add android
-          npx capacitor-assets generate --android --iconBackgroundColor '#5444E8' --iconBackgroundColorDark '#5444E8'
+          npx capacitor-assets generate --android
           npx cap sync android
 
       - name: Compilar el APK
