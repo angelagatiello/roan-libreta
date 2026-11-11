@@ -1,0 +1,6 @@
+{
+  "appId": "ar.roan.libreta",
+  "appName": "ROAN",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}
