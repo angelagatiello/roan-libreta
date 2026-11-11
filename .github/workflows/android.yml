@@ -1,0 +1,59 @@
+name: Compilar APK de Android
+
+on:
+  push:
+    branches: [main]
+    paths: ['www/**', 'capacitor.config.json', 'package.json', 'assets/**', '.github/workflows/android.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Generar íconos desde el SVG
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y librsvg2-bin
+          rsvg-convert -w 192 -h 192 www/icons/icon.svg -o www/icons/icon-192.png
+          rsvg-convert -w 512 -h 512 www/icons/icon.svg -o www/icons/icon-512.png
+          rsvg-convert -w 512 -h 512 www/icons/icon.svg -o www/icons/icon-maskable-512.png
+          rsvg-convert -w 1024 -h 1024 www/icons/icon.svg -o assets/icon-only.png
+          rsvg-convert -w 1024 -h 1024 assets/icon-fg.svg -o assets/icon-foreground.png
+
+      - name: Instalar dependencias y crear el proyecto Android
+        run: |
+          npm install
+          npx cap add android
+          npx capacitor-assets generate --android --iconBackgroundColor '#5444E8' --iconBackgroundColorDark '#5444E8'
+          npx cap sync android
+
+      - name: Compilar el APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Preparar archivo
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk roan-libreta.apk
+
+      - name: Publicar el APK para descargar
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk
+          name: APK Android (última versión)
+          body: |
+            Descargá `roan-libreta.apk`, abrilo en el celular y aceptá instalar desde esta fuente.
+            Si ya tenías una versión instalada, desinstalala antes de instalar la nueva: no perdés datos porque todo está en la nube.
+          files: roan-libreta.apk
+          make_latest: true
