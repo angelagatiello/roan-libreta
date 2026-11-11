@@ -1,0 +1,33 @@
+name: Publicar la web (GitHub Pages)
+
+on:
+  push:
+    branches: [main]
+    paths: ['www/**', '.github/workflows/web.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generar íconos PNG desde el SVG
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y librsvg2-bin
+          rsvg-convert -w 192 -h 192 www/icons/icon.svg -o www/icons/icon-192.png
+          rsvg-convert -w 512 -h 512 www/icons/icon.svg -o www/icons/icon-512.png
+          rsvg-convert -w 512 -h 512 www/icons/icon.svg -o www/icons/icon-maskable-512.png
+
+      - name: Enlace de descarga del APK
+        run: sed -i "s#__APK_URL__#https://github.com/${{ github.repository }}/releases/latest/download/roan-libreta.apk#" www/index.html
+
+      - name: Publicar en la rama gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./www
+          force_orphan: true
