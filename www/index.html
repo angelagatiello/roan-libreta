@@ -249,6 +249,8 @@ details ul{margin:8px 0 0;padding-left:20px}
 <script src="cloud.js"></script>
 <script>
 window.ROAN_APK_URL='__APK_URL__';
+window.__errs=[];window.addEventListener('error',function(e){window.__errs.push(String(e.message||e.error||'error').slice(0,80))});window.addEventListener('unhandledrejection',function(e){window.__errs.push(String(e.reason&&e.reason.message||e.reason||'rechazo').slice(0,80))});
+window.bootDiag=function(){return ' ['+'supabase:'+typeof window.supabase+', claude:'+typeof window.claude+(window.__bootErr?', boot:'+window.__bootErr:'')+(window.__errs.length?', errores:'+window.__errs.slice(0,3).join(' | '):'')+']'};
 </script>
 <script>
 (function(){
@@ -280,7 +282,7 @@ function plazo(iso){
 var LS={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}}};
 
 /* ---------- estado ---------- */
-var COLS=['boveda','emprendimientos','gastos','cobros','clientes','tareas','bitacora','ideas','hitos','metricas','obligaciones','documentos','proveedores','aportes','notasvoz'];
+var COLS=['boveda','alianzas','emprendimientos','gastos','cobros','clientes','tareas','bitacora','ideas','hitos','metricas','obligaciones','documentos','proveedores','aportes','notasvoz'];
 var S={};COLS.forEach(function(c){S[c]=[]});
 var CFG={empresa:'ROAN',a:'Angel',b:'Rodrigo',pctA:50,tc:0};
 var FICHA_DEF={razon:'',tipo:'Sin definir',cuit:'',regimen:'Sin definir',constitucion:'',actividad:'',domicilio:'',iibb:'',contador:'',banco:'',saldo:0};
@@ -426,6 +428,16 @@ var SCH={
     {k:'estado',t:'select',l:'Estado',o:['Activo','Cancelado']},
     {k:'link',t:'text',l:'Enlace',w:2,ph:'https://'},
     {k:'nota',t:'text',l:'Nota (nunca cargues contraseñas)',w:2}]},
+  alianzas:{add:'Nuevo contacto o alianza',label:'contacto',fields:[
+    {k:'nombre',t:'text',l:'Con quién (empresa o persona)',req:1,w:2,ph:'Ej: Surdental'},
+    EMPF,
+    {k:'tipo',t:'select',l:'Tipo',o:['Proveedor','Distribuidor','Aliado comercial','Cliente potencial','Inversor','Otro']},
+    {k:'estado',t:'select',l:'Estado',o:function(){return AL_ST}},
+    {k:'resp',t:'select',l:'Quién se encarga',o:SOC([['ambos','Los dos']])},
+    {k:'contacto',t:'text',l:'Contacto (persona, teléfono o mail)',w:2},
+    {k:'proximo',t:'text',l:'Próximo paso',w:2,ph:'Ej: Hablar y hacerle una propuesta'},
+    {k:'fecha',t:'date',l:'Para cuándo'},
+    {k:'nota',t:'area',l:'Notas y propuesta',w:'full',ph:'Qué queremos proponerle, qué nos dijo, condiciones...'}]},
   aportes:{add:'Nuevo aporte o retiro',label:'movimiento de socio',fields:[
     {k:'fecha',t:'date',l:'Fecha',req:1,def:today},
     {k:'socio',t:'select',l:'Socio',o:SOC()},
@@ -453,7 +465,7 @@ var SCH={
     {k:'saldo',t:'number',l:'Saldo inicial de caja (pesos)'}]}
 };
 var isDocForm=function(c){return c==='cfg'||c==='ficha'};
-var SCOPED={gastos:1,cobros:1,clientes:1,tareas:1,bitacora:1,hitos:1,documentos:1,proveedores:1};
+var SCOPED={alianzas:1,gastos:1,cobros:1,clientes:1,tareas:1,bitacora:1,hitos:1,documentos:1,proveedores:1};
 function opts(f){var o=typeof f.o==='function'?f.o():f.o;return o.map(function(x){return Array.isArray(x)?x:[x,x]})}
 function visibleFields(col){return SCH[col].fields.filter(function(f){return !(f.k==='emp'&&fixedEmp()!==undefined)})}
 
@@ -873,6 +885,7 @@ function vEmpPanorama(){
     card('Próximos pasos',ul(hitos.map(function(h){return {l:esc(h.titulo),s:esc(socio(h.resp))+(h.fecha?' · '+dateLabel(h.fecha):''),r:h.fecha?plazo(h.fecha):'<span class="chip">'+esc(h.estado||'Pendiente')+'</span>'}}),'No hay pasos pendientes. Cargalos en Pasos y logros.'))+card('Últimos logros',ul(sel('hitos',e.id).filter(function(h){return h.estado==='Logrado'}).sort(function(a,b){return (b.logrado||'').localeCompare(a.logrado||'')}).slice(0,4).map(function(h){return {l:esc(h.titulo),s:h.logrado?'Logrado el '+dateLabel(h.logrado):'Logrado',r:'<span class="chip ok">Hecho</span>'}}),'Todavía no tildaron ningún paso.'))+
     '</div><div class="col">'+
     card('Métricas, última medición',ul(ml.slice(0,6).map(function(x){return {l:esc(x.metrica),s:dateLabel(x.fecha),r:'<span class="mono">'+nf2.format(x.valor)+'</span>'}}),'Todavía no hay mediciones.'))+
+    card('Contactos y alianzas en curso',ul(sel('alianzas',e.id).filter(function(x){return x.estado!=='Acordado'&&x.estado!=='Descartado'}).sort(function(a,b){return alOrd(a)-alOrd(b)||(a.fecha||'9').localeCompare(b.fecha||'9')}).slice(0,5).map(function(x){return {l:esc(x.nombre),s:esc(x.proximo||x.tipo||'')+(x.fecha?' · '+dateLabel(x.fecha):''),r:'<span class="chip '+(AL_CLS[x.estado||'Por contactar']||'')+'">'+esc(x.estado||'Por contactar')+'</span>'}}),'Sin contactos abiertos. Sumalos en Contactos.'))+
     card('Tareas abiertas',ul(tareas.map(function(t){return {l:esc(t.titulo),s:esc(socio(t.resp))+(t.vence?' · '+dateLabel(t.vence):''),r:t.vence&&t.vence<today()?'<span class="chip bad">Vencida</span>':'<span class="chip">'+esc(t.estado||'Pendiente')+'</span>'}}),'No hay tareas abiertas.'))+
     card('Ideas con más votos',ul(ideas.map(function(x){return {l:esc(x.titulo),s:esc(x.estado||'Nueva'),r:'<span class="chip">'+votes(x).length+' me gusta</span>'}}),'Todavía no hay ideas para este emprendimiento.'))+
     card('Última actividad',ul(acts.map(function(x){return {l:esc(String(x.texto||'').slice(0,110))+(String(x.texto||'').length>110?'…':''),s:dateLabel(x.fecha)+' · '+esc(x.tipo)}}),'Todavía no hay notas.'))+
@@ -1240,7 +1253,7 @@ function vAjustes(){
   return dg+accountCard()+appCard()+
     '<div class="card"><h3>Copias de seguridad</h3><p class="sub">Con la copia completa bajás todo en un solo archivo. También podés bajar cada sección en CSV para abrirla en Excel o Google Sheets. Conviene hacerlo una vez por mes: el plan gratuito de la nube no hace copias automáticas.</p>'+(downloads?'<div class="frow"><button class="btn" data-act="backup">Copia completa (un solo archivo)</button></div>':'')+dl+'</div>';
 }
-var CSVL={emprendimientos:'Emprendimientos',gastos:'Gastos',cobros:'Cobros',clientes:'Clientes',tareas:'Tareas',bitacora:'Bitácora',ideas:'Ideas',hitos:'Hitos y metas',metricas:'Métricas',obligaciones:'Vencimientos',documentos:'Documentos',proveedores:'Proveedores',aportes:'Aportes y retiros',notasvoz:'Notas de voz',boveda:'Contraseñas (cifradas)'};
+var CSVL={emprendimientos:'Emprendimientos',gastos:'Gastos',cobros:'Cobros',clientes:'Clientes',tareas:'Tareas',bitacora:'Bitácora',ideas:'Ideas',hitos:'Hitos y metas',metricas:'Métricas',obligaciones:'Vencimientos',documentos:'Documentos',proveedores:'Proveedores',aportes:'Aportes y retiros',notasvoz:'Notas de voz',boveda:'Contraseñas (cifradas)',alianzas:'Contactos y alianzas'};
 function csvCell(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'}
 
 /* ---------- navegación ---------- */
@@ -1254,6 +1267,7 @@ var SUBS={
   impuestos:{t:'Impuestos',col:'obligaciones',view:vObligaciones},
   documentos:{t:'Documentos',col:'documentos',view:vDocumentos},
   proveedores:{t:'Proveedores',col:'proveedores',view:vProveedores},
+  alianzas:{t:'Contactos',col:'alianzas',view:vAlianzas},
   socios:{t:'Socios',col:'aportes',view:vSocios},
   metas:{t:'Pasos y logros',col:'hitos',view:vHitos},
   ruta:{t:'Pasos y logros',col:'hitos',view:vHitos},
@@ -1263,7 +1277,7 @@ var SUBS={
   bitacora:{t:'Bitácora',col:'bitacora',view:vBitacora}
 };
 var EMPRESA_SUBS=['panorama','ficha','gastos','cobros','clientes','impuestos','documentos','proveedores','socios','metas','tareas','bitacora'];
-var EMP_SUBS=['panorama','gastos','cobros','clientes','ruta','metricas','ideas','tareas','documentos','proveedores','bitacora'];
+var EMP_SUBS=['panorama','gastos','cobros','clientes','ruta','metricas','ideas','tareas','alianzas','documentos','proveedores','bitacora'];
 function subsList(){return tab==='empresa'?EMPRESA_SUBS:inEmpCtx()?EMP_SUBS:[]}
 function current(){
   if(tab==='resumen')return {view:vResumen};
@@ -1290,7 +1304,7 @@ function renderSync(){
   var tot=COLS.length+2,n=COLS.filter(function(c){return loaded[c]}).length+(loaded.cfg?1:0)+(loaded.ficha?1:0);
   var t,cl;
   if(fatal){t=fatal;cl='off'}
-  else if(!db){t='Sin conexión a la nube';cl='off'}
+  else if(!db){t='Sin conexión a la nube'+window.bootDiag();cl='off'}
   else if(all){t='Sincronizado en la nube';cl='on'}
   else if(Object.keys(errKeys).length){t='Error de la nube en: '+Object.keys(errKeys).join(', ')+' ('+Object.keys(errKeys).map(function(k){return errKeys[k]}).join(', ')+')';cl='off'}
   else if(slow){var falta=COLS.filter(function(c){return !loaded[c]}).concat(loaded.cfg?[]:['ajustes'],loaded.ficha?[]:['ficha']);t='Sin respuesta de la nube ('+n+' de '+tot+'). Falta: '+falta.join(', ')+'. Los datos pueden estar desactualizados.';cl='off'}
@@ -1700,6 +1714,42 @@ ACT.vtdel=async function(b,d){
   VT.armed=null;await db.collection('boveda').doc(d.id).delete();delete VT.plain[d.id];delete VT.dec[d.id];toast('Contraseña borrada');
 };
 
+/* ---------- contactos y alianzas por emprendimiento ---------- */
+var AL_ST=['Por contactar','Contactado','Propuesta enviada','En negociación','Acordado','Descartado'];
+var AL_CLS={'Por contactar':'warn','Contactado':'info','Propuesta enviada':'info','En negociación':'info','Acordado':'ok','Descartado':''};
+var alOrd=function(x){var s=x.estado||'Por contactar';return s==='Descartado'?9:s==='Acordado'?8:AL_ST.indexOf(s)};
+function vAlianzas(){
+  if(!ready('alianzas'))return loadingHTML();
+  var base=scoped('alianzas');
+  if(!base.length)return empty('Todavía no hay contactos ni alianzas','Anotá con quién tienen que hablar: proveedores, distribuidores, clientes grandes, posibles socios. Cada uno tiene su estado (por contactar, propuesta enviada, acordado) y su próximo paso, así nada se pierde.');
+  var td=today();
+  var rows=base.slice().sort(function(a,b){return alOrd(a)-alOrd(b)||(a.fecha||'9').localeCompare(b.fecha||'9')||norm(a.nombre).localeCompare(norm(b.nombre))});
+  return '<div class="grid">'+rows.map(function(x){
+    var st=x.estado||'Por contactar',i=AL_ST.indexOf(st),next=(i>=0&&i<4)?AL_ST[i+1]:'',
+        late=x.fecha&&x.fecha<td&&st!=='Acordado'&&st!=='Descartado';
+    var mv='';
+    if(!readOnly){
+      var d=' data-id="'+esc(x.id)+'"';
+      if(next)mv+='<button class="lnk" data-act="alstep"'+d+' data-to="'+esc(next)+'">Pasar a '+esc(next)+'</button>';
+      if(st!=='Descartado'&&st!=='Acordado')mv+='<button class="lnk" data-act="altask"'+d+'>Crear tarea</button>';
+      if(st==='Acordado')mv+='<button class="lnk" data-act="alstep"'+d+' data-to="En negociación">Reabrir</button>';
+    }
+    return '<article class="card"><h3 style="margin-bottom:6px">'+esc(x.nombre)+'</h3>'+
+      '<p style="margin:0 0 8px"><span class="chip">'+esc(x.tipo||'Otro')+'</span> <span class="chip '+(AL_CLS[st]||'')+'">'+esc(st)+'</span>'+(late?' <span class="chip bad">Vencido</span>':'')+empTag(x)+'</p>'+
+      (x.proximo?'<p style="margin:4px 0"><strong>Próximo paso:</strong> '+esc(x.proximo)+(x.fecha?' · '+dateLabel(x.fecha):'')+'</p>':'')+
+      '<p class="sub" style="margin:4px 0">'+esc(socio(x.resp))+(x.contacto?' · '+esc(x.contacto):'')+'</p>'+
+      (x.nota?'<p class="sub" style="white-space:pre-wrap;margin-top:8px">'+esc(x.nota)+'</p>':'')+
+      '<div class="acts" style="white-space:normal;text-align:left;margin-top:10px">'+mv+actions('alianzas',x)+'</div></article>';
+  }).join('')+'</div>';
+}
+ACT.alstep=async function(b,d){await db.collection('alianzas').doc(d.id).update({estado:d.to});toast('Estado: '+d.to)};
+ACT.altask=async function(b,d){
+  var x=find('alianzas',d.id);if(!x||readOnly)return;
+  var t=(x.proximo?x.proximo:'Contactar a '+x.nombre);if(norm(t).indexOf(norm(x.nombre))<0)t=x.nombre+': '+t;
+  await db.collection('tareas').doc().set({emp:x.emp||'',titulo:t.slice(0,140),resp:x.resp||'ambos',prioridad:'Media',vence:x.fecha||'',estado:'Pendiente',nota:'Viene de Contactos y alianzas',by:myId||null,ts:Date.now()});
+  toast('Tarea creada en Tareas');
+};
+
 ACT.logout=function(){return window.roanLogout()};
 ACT.backup=async function(){
   if(!downloads)return;
@@ -1752,7 +1802,7 @@ route();
     if(C&&C.use){
       db=await C.use('db');user=await C.use('user');downloads=await C.use('downloads');sample=await C.use('sample');
     }
-  }catch(e){db=null}
+  }catch(e){db=null;window.__bootErr=String(e&&e.message||e).slice(0,80)}
   if(!db){booting=false;renderChrome();renderSync();renderForm();paint();return}
   try{
     var me=await user.me();myId=me&&me.id||null;
